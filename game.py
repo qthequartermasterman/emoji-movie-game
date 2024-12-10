@@ -147,7 +147,7 @@ class MoviePlot(pydantic.BaseModel):
 @magentic.chatprompt(
     SYSTEM_PROMPT,
     magentic.UserMessage("The title of the movie is {title}."),
-    magentic.UserMessage("Please describe the plot in plaintext, including at least 20 plot beats."),
+    magentic.UserMessage("Please describe the plot in plaintext, including at least 12 plot beats."),
 )
 def _from_title_to_plot(title: str) -> str:
     ...
