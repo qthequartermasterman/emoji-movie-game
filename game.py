@@ -100,7 +100,6 @@ MOVIES = [
     "Ready Player One",
     "Big Hero 6",
     
-    
 ]
 
 
@@ -138,6 +137,11 @@ class MoviePlot(pydantic.BaseModel):
         ..., title="Explanation of the plot with emoji, i.e. what the emoji represent"
     )
 
+    @pydantic.field_validator('plot_with_emoji')
+    @classmethod
+    def remove_redundant_newlines(cls, value):
+        return value.replace("\n\n", "\n")
+
 
 
 @magentic.chatprompt(
@@ -172,10 +176,6 @@ def from_title(title: str) -> MoviePlot:
     
 
 
-def get_movie_plot():
-    title = random.choice(MOVIES)
-    movie_plot = from_title(title)
-    return title, movie_plot.plot_with_emoji
 
 
 def display_real_answer(user_input, title):
@@ -189,37 +189,29 @@ def gradio_interface():
         gr.Markdown(f"### Guess the movie plot from the emojis:")
         plot_output = gr.Textbox(label="Plot with Emoji")
         title = gr.State()
+        movie_order = gr.State(list(random.sample(MOVIES, len(MOVIES))))
 
         user_input = gr.Textbox(label="Your Guess")
         with gr.Row():
-            real_answer_button = gr.Button("Show Real Answer")
+            real_answer_button = gr.Button("Reveal Movie")
             reset_button = gr.Button("Reset")
-        real_answer_output = gr.Textbox(label="Real Answer")
-
+        real_answer_output = gr.Textbox(label="Movie Title")
+        explanation_output = gr.Textbox(label="Emoji Explanation")
         plot_plaintext_output = gr.Textbox(label="Plot")
-        explanation_output = gr.Textbox(label="Explanation")
 
+        @real_answer_button.click(inputs=[user_input, title], outputs=[
+                real_answer_output,
+                plot_plaintext_output,
+                plot_output,
+                explanation_output,
+            ])
         def on_real_answer_click(user_input, title):
             real_answer, plot, plot_with_emoji, explanation = display_real_answer(
                 user_input, title
             )
             return real_answer, plot, plot_with_emoji, explanation
 
-        def on_reset_click():
-            return "", "", "", "", ""
-
-        real_answer_button.click(
-            on_real_answer_click,
-            inputs=[user_input, title],
-            outputs=[
-                real_answer_output,
-                plot_plaintext_output,
-                plot_output,
-                explanation_output,
-            ],
-        )
-        reset_button.click(
-            on_reset_click,
+        @reset_button.click(
             outputs=[
                 user_input,
                 real_answer_output,
@@ -228,9 +220,18 @@ def gradio_interface():
                 explanation_output,
             ],
         )
-        reset_button.click(get_movie_plot, outputs=[title, plot_output])
+        def on_reset_click():
+            return "", "", "", "", ""
 
-        demo.load(get_movie_plot, outputs=[title, plot_output])
+
+        @reset_button.click(inputs=[movie_order], outputs=[title, plot_output, movie_order])
+        @demo.load(inputs=[movie_order], outputs=[title, plot_output, movie_order])
+        def get_movie_plot(movie_order):
+            if not movie_order:
+                return "", "All movies in database exhausted.", []
+            title = movie_order[0]
+            movie_plot = from_title(title)
+            return title, movie_plot.plot_with_emoji, movie_order[1:]
 
     demo.launch()
 
