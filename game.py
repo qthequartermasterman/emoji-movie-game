@@ -264,7 +264,9 @@ class MoviePlot(pydantic.BaseModel):
 
     @pydantic.field_validator("plot_with_emoji")
     @classmethod
-    def remove_redundant_newlines(cls, value):
+    def strip_non_emoji(cls, value):
+        # remove redundant newlines (more than 1 newline in a row, most commonly two or three, but could be more)
+        value = value.replace("\n\n\n", "\n")
         value = value.replace("\n\n", "\n")
         value = value.replace("|", "\n")
         # strip emoji
@@ -399,7 +401,7 @@ def gradio_interface():
 
             return (
                 original_title,
-                movie_plot.plot_with_emoji.replace("|", "\n"),
+                movie_plot.plot_with_emoji,
                 movie_order,
                 new_movie_plot_task,
             )
