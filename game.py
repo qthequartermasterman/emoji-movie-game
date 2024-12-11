@@ -382,7 +382,7 @@ def gradio_interface():
 
             return (
                 original_title,
-                movie_plot.plot_with_emoji,
+                movie_plot.plot_with_emoji.replace("|", "\n"),
                 movie_order,
                 (new_title, new_movie_plot_task),
             )
