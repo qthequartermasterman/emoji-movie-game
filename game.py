@@ -216,6 +216,7 @@ MOVIES = [
     "Atlantis: The Lost Empire",
     "The Corpse Bride",
     "The Day the Earth Stood Still",
+    "The West Side Story",
 ]
 
 
@@ -308,9 +309,9 @@ async def display_real_answer(user_input, title):
 
 # Gradio interface
 def gradio_interface():
-    with gr.Blocks() as demo:
-        gr.Markdown("### Guess the movie plot from the emojis:")
-        plot_output = gr.Textbox(label="Plot with Emoji")
+    with gr.Blocks(css=".emoji-text textarea {font-size: 26px !important}") as demo:
+        gr.Markdown("### Guess the Movie Title from the Plot Explained with Emoji:")
+        plot_output = gr.Textbox(label="Plot with Emoji", elem_classes="emoji-text")
         title = gr.State()
         movie_title_queue = gr.State(list(random.sample(MOVIES, len(MOVIES))))
         next_movie_plot_task = gr.State(None)
